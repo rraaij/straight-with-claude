@@ -30,6 +30,7 @@ function App() {
   const [winner, setWinner] = createSignal('')
   const [ballsRemaining, setBallsRemaining] = createSignal('')
   const [hasFoul, setHasFoul] = createSignal(false)
+  const [consecutiveFouls, setConsecutiveFouls] = createSignal(0)
 
   const addEvent = (action: string, points: number) => {
     const player = currentPlayer() === 1 ? player1().name : player2().name
@@ -60,14 +61,29 @@ function App() {
     const ballsPocketed = ballsInRack() - remaining
     let scoreChange = ballsPocketed
 
-    // Apply foul if checked
+    // Handle consecutive fouls and penalties
     if (hasFoul()) {
-      scoreChange -= 1
-      addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}, Foul (-1)`, ballsPocketed - 1)
-    } else if (ballsPocketed > 0) {
-      addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}`, ballsPocketed)
+      const newConsecutiveFouls = consecutiveFouls() + 1
+      setConsecutiveFouls(newConsecutiveFouls)
+
+      // Check for 3rd consecutive foul
+      if (newConsecutiveFouls === 3) {
+        scoreChange = ballsPocketed - 15
+        addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}, 3rd Consecutive Foul (-15 points)`, scoreChange)
+        setConsecutiveFouls(0) // Reset after penalty
+      } else {
+        scoreChange -= 1
+        addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}, Foul (-1)${newConsecutiveFouls > 1 ? ` [${newConsecutiveFouls} consecutive]` : ''}`, ballsPocketed - 1)
+      }
     } else {
-      addEvent('Missed', 0)
+      // Reset consecutive fouls if no foul occurred
+      setConsecutiveFouls(0)
+
+      if (ballsPocketed > 0) {
+        addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}`, ballsPocketed)
+      } else {
+        addEvent('Missed', 0)
+      }
     }
 
     // Update score
@@ -106,6 +122,7 @@ function App() {
       setWinner('')
       setBallsRemaining('')
       setHasFoul(false)
+      setConsecutiveFouls(0)
     }
   }
 
@@ -225,6 +242,12 @@ function App() {
           <span class="label">Current Shooter:</span>
           <span class="value">{currentPlayer() === 1 ? player1().name : player2().name}</span>
         </div>
+        <Show when={consecutiveFouls() > 0}>
+          <div class="info-card foul-warning">
+            <span class="label">Consecutive Fouls:</span>
+            <span class="value warning">{consecutiveFouls()}/3</span>
+          </div>
+        </Show>
       </div>
 
       <div class="controls">
@@ -298,6 +321,7 @@ function App() {
             <li>When 14 balls are pocketed, they are re-racked</li>
             <li>The 15th ball and cue ball remain in position</li>
             <li>Fouls result in -1 point</li>
+            <li><strong>3 consecutive fouls result in -15 points penalty</strong></li>
             <li>Games are typically played to 100, 125, or 150 points</li>
             <li>Consecutive innings by the same player indicate a "run"</li>
           </ul>
