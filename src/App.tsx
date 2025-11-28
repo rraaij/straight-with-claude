@@ -28,6 +28,10 @@ function App() {
   const [tempName2, setTempName2] = createSignal(player2().name)
   const [gameWon, setGameWon] = createSignal(false)
   const [winner, setWinner] = createSignal('')
+  const [currentRun, setCurrentRun] = createSignal(0)
+
+  // Calculate potential run: current run + balls remaining in rack
+  const potentialRun = () => currentRun() + ballsInRack()
 
   const addEvent = (action: string, points: number) => {
     const player = currentPlayer() === 1 ? player1().name : player2().name
@@ -49,6 +53,7 @@ function App() {
 
     setPlayer({ ...player(), score: player().score + points })
     setBallsInRack(Math.max(0, ballsInRack() - points))
+    setCurrentRun(currentRun() + points)
     addEvent(`Made ${points} ball${points > 1 ? 's' : ''}`, points)
 
     if (ballsInRack() <= 1) {
@@ -61,7 +66,7 @@ function App() {
     const player = currentPlayer() === 1 ? player1 : player2
     const setPlayer = currentPlayer() === 1 ? setPlayer1 : setPlayer2
 
-    setPlayer({ ...player(), score: Math.max(0, player().score - 1) })
+    setPlayer({ ...player(), score: player().score - 1 })
     addEvent('Foul (-1 point)', -1)
     switchPlayer()
   }
@@ -69,6 +74,7 @@ function App() {
   const switchPlayer = () => {
     setCurrentPlayer(currentPlayer() === 1 ? 2 : 1)
     setInningNumber(inningNumber() + 1)
+    setCurrentRun(0)
   }
 
   const resetGame = () => {
@@ -81,6 +87,7 @@ function App() {
       setGameHistory([])
       setGameWon(false)
       setWinner('')
+      setCurrentRun(0)
     }
   }
 
@@ -195,6 +202,14 @@ function App() {
         <div class="info-card">
           <span class="label">Balls in Rack:</span>
           <span class="value">{ballsInRack()}</span>
+        </div>
+        <div class="info-card">
+          <span class="label">Current Run:</span>
+          <span class="value">{currentRun()}</span>
+        </div>
+        <div class="info-card">
+          <span class="label">Potential Run:</span>
+          <span class="value">{potentialRun()}</span>
         </div>
         <div class="info-card">
           <span class="label">Current Shooter:</span>
