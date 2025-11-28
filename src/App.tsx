@@ -4,6 +4,9 @@ import './App.css'
 interface Player {
   name: string
   score: number
+  currentRun: number
+  runs: number[]
+  highestRun: number
 }
 
 interface GameEvent {
@@ -15,8 +18,8 @@ interface GameEvent {
 }
 
 function App() {
-  const [player1, setPlayer1] = createSignal<Player>({ name: 'Player 1', score: 0 })
-  const [player2, setPlayer2] = createSignal<Player>({ name: 'Player 2', score: 0 })
+  const [player1, setPlayer1] = createSignal<Player>({ name: 'Player 1', score: 0, currentRun: 0, runs: [], highestRun: 0 })
+  const [player2, setPlayer2] = createSignal<Player>({ name: 'Player 2', score: 0, currentRun: 0, runs: [], highestRun: 0 })
   const [currentPlayer, setCurrentPlayer] = createSignal<1 | 2>(1)
   const [ballsInRack, setBallsInRack] = createSignal(15)
   const [inningNumber, setInningNumber] = createSignal(1)
@@ -47,7 +50,15 @@ function App() {
     const player = currentPlayer() === 1 ? player1 : player2
     const setPlayer = currentPlayer() === 1 ? setPlayer1 : setPlayer2
 
-    setPlayer({ ...player(), score: player().score + points })
+    const newCurrentRun = player().currentRun + points
+    const newHighestRun = Math.max(player().highestRun, newCurrentRun)
+
+    setPlayer({
+      ...player(),
+      score: player().score + points,
+      currentRun: newCurrentRun,
+      highestRun: newHighestRun
+    })
     setBallsInRack(Math.max(0, ballsInRack() - points))
     addEvent(`Made ${points} ball${points > 1 ? 's' : ''}`, points)
 
@@ -66,15 +77,29 @@ function App() {
     switchPlayer()
   }
 
+  const endRun = () => {
+    const player = currentPlayer() === 1 ? player1 : player2
+    const setPlayer = currentPlayer() === 1 ? setPlayer1 : setPlayer2
+
+    if (player().currentRun > 0) {
+      setPlayer({
+        ...player(),
+        runs: [...player().runs, player().currentRun],
+        currentRun: 0
+      })
+    }
+  }
+
   const switchPlayer = () => {
+    endRun()
     setCurrentPlayer(currentPlayer() === 1 ? 2 : 1)
     setInningNumber(inningNumber() + 1)
   }
 
   const resetGame = () => {
     if (confirm('Are you sure you want to reset the game?')) {
-      setPlayer1({ ...player1(), score: 0 })
-      setPlayer2({ ...player2(), score: 0 })
+      setPlayer1({ ...player1(), score: 0, currentRun: 0, runs: [], highestRun: 0 })
+      setPlayer2({ ...player2(), score: 0, currentRun: 0, runs: [], highestRun: 0 })
       setCurrentPlayer(1)
       setBallsInRack(15)
       setInningNumber(1)
@@ -155,6 +180,10 @@ function App() {
             </Show>
           </div>
           <div class="score">{player1().score}</div>
+          <div class="run-stats">
+            <div class="current-run">Current Run: {player1().currentRun}</div>
+            <div class="highest-run">High Run: {player1().highestRun}</div>
+          </div>
         </div>
 
         <div class="vs">VS</div>
@@ -184,6 +213,10 @@ function App() {
             </Show>
           </div>
           <div class="score">{player2().score}</div>
+          <div class="run-stats">
+            <div class="current-run">Current Run: {player2().currentRun}</div>
+            <div class="highest-run">High Run: {player2().highestRun}</div>
+          </div>
         </div>
       </div>
 
@@ -244,6 +277,65 @@ function App() {
               </div>
             )}
           </For>
+        </div>
+      </div>
+
+      <div class="runs-section">
+        <h3>Player Runs</h3>
+        <div class="runs-tables">
+          <div class="runs-table">
+            <h4>{player1().name}'s Runs</h4>
+            <Show when={player1().runs.length === 0}>
+              <p class="no-runs">No completed runs yet</p>
+            </Show>
+            <Show when={player1().runs.length > 0}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Balls Made</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={player1().runs}>
+                    {(run, index) => (
+                      <tr>
+                        <td>{index() + 1}</td>
+                        <td>{run}</td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </Show>
+          </div>
+
+          <div class="runs-table">
+            <h4>{player2().name}'s Runs</h4>
+            <Show when={player2().runs.length === 0}>
+              <p class="no-runs">No completed runs yet</p>
+            </Show>
+            <Show when={player2().runs.length > 0}>
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Balls Made</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <For each={player2().runs}>
+                    {(run, index) => (
+                      <tr>
+                        <td>{index() + 1}</td>
+                        <td>{run}</td>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </Show>
+          </div>
         </div>
       </div>
 

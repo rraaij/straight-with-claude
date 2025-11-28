@@ -134,6 +134,29 @@ header h1 {
   margin: 10px 0;
 }
 
+.run-stats {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #333;
+}
+
+.current-run,
+.highest-run {
+  font-size: 0.9em;
+  margin: 5px 0;
+  color: #888;
+}
+
+.current-run {
+  color: #2196F3;
+  font-weight: bold;
+}
+
+.highest-run {
+  color: #FFD700;
+  font-weight: bold;
+}
+
 .vs {
   font-size: 2em;
   font-weight: bold;
@@ -235,6 +258,67 @@ header h1 {
 .reset-btn:hover {
   background: #e68900;
   transform: translateY(-2px);
+}
+
+.runs-section {
+  margin-bottom: 30px;
+}
+
+.runs-section h3 {
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.runs-tables {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.runs-table {
+  background: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.runs-table h4 {
+  margin: 0 0 15px 0;
+  text-align: center;
+  color: #4CAF50;
+}
+
+.runs-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.runs-table th {
+  background: #2a2a2a;
+  color: #888;
+  padding: 10px;
+  text-align: left;
+  border-bottom: 2px solid #333;
+}
+
+.runs-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #333;
+}
+
+.runs-table tr:last-child td {
+  border-bottom: none;
+}
+
+.runs-table tr:hover {
+  background: #2a2a2a;
+}
+
+.no-runs {
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  padding: 20px;
 }
 
 .history {
