@@ -237,7 +237,7 @@ describe('App - Straight Pool Scorer', () => {
       expect(scores.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('should handle multiple consecutive fouls', () => {
+    it('should handle fouls between different players', () => {
       render(() => <App />)
 
       const ballMadeBtn = screen.getByText('Ball Made (+1)')
@@ -265,6 +265,160 @@ describe('App - Straight Pool Scorer', () => {
       fireEvent.click(foulBtn)
 
       expect(screen.getByText('Foul (-1 point)')).toBeInTheDocument()
+    })
+  })
+
+  describe('Consecutive Fouls', () => {
+    it('should track consecutive fouls', () => {
+      render(() => <App />)
+
+      const ballMadeBtn = screen.getByText('Ball Made (+1)')
+      const foulBtn = screen.getByText('Foul (-1)')
+
+      // Player 1 scores 20 points to have enough for penalties
+      for (let i = 0; i < 20; i++) {
+        fireEvent.click(ballMadeBtn)
+      }
+
+      // First foul - should show consecutive foul counter
+      fireEvent.click(foulBtn)
+
+      // Switch back to Player 1 and apply second foul
+      const switchBtn = screen.getByText('Switch Player')
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn)
+
+      // Should show consecutive fouls counter
+      expect(screen.getByText(/Consecutive Fouls:/)).toBeInTheDocument()
+      expect(screen.getByText('2/3')).toBeInTheDocument()
+    })
+
+    it('should apply -15 penalty on 3rd consecutive foul', () => {
+      render(() => <App />)
+
+      const ballMadeBtn = screen.getByText('Ball Made (+1)')
+      const foulBtn = screen.getByText('Foul (-1)')
+      const switchBtn = screen.getByText('Switch Player')
+
+      // Player 1 scores 20 points
+      for (let i = 0; i < 20; i++) {
+        fireEvent.click(ballMadeBtn)
+      }
+
+      // Apply 3 consecutive fouls
+      fireEvent.click(foulBtn) // 19 points, switches to P2
+      fireEvent.click(switchBtn) // Switch back to P1
+      fireEvent.click(foulBtn) // 18 points, switches to P2
+      fireEvent.click(switchBtn) // Switch back to P1
+      fireEvent.click(foulBtn) // 3rd foul: should be 20 - 1 - 1 - 15 = 3 points
+
+      // Should have 3 points remaining
+      expect(screen.getByText('3')).toBeInTheDocument()
+
+      // Should show 3rd consecutive foul message in history
+      expect(screen.getByText('3rd Consecutive Foul (-15 points)')).toBeInTheDocument()
+    })
+
+    it('should reset consecutive fouls after making a ball', () => {
+      render(() => <App />)
+
+      const ballMadeBtn = screen.getByText('Ball Made (+1)')
+      const foulBtn = screen.getByText('Foul (-1)')
+      const switchBtn = screen.getByText('Switch Player')
+
+      // Player 1 scores some points
+      for (let i = 0; i < 10; i++) {
+        fireEvent.click(ballMadeBtn)
+      }
+
+      // Apply 2 fouls
+      fireEvent.click(foulBtn)
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn)
+
+      // Should show 2/3 consecutive fouls
+      expect(screen.getByText('2/3')).toBeInTheDocument()
+
+      // Switch back and make a ball
+      fireEvent.click(switchBtn)
+      fireEvent.click(ballMadeBtn)
+
+      // Consecutive fouls counter should disappear
+      expect(screen.queryByText(/Consecutive Fouls:/)).not.toBeInTheDocument()
+    })
+
+    it('should not reset consecutive fouls when manually switching players', () => {
+      render(() => <App />)
+
+      const ballMadeBtn = screen.getByText('Ball Made (+1)')
+      const foulBtn = screen.getByText('Foul (-1)')
+      const switchBtn = screen.getByText('Switch Player')
+
+      // Player 1 scores points
+      for (let i = 0; i < 10; i++) {
+        fireEvent.click(ballMadeBtn)
+      }
+
+      // Apply 2 fouls
+      fireEvent.click(foulBtn)
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn)
+
+      // Should show consecutive fouls
+      expect(screen.getByText('2/3')).toBeInTheDocument()
+
+      // Manually switch player (not via foul)
+      fireEvent.click(switchBtn)
+
+      // Consecutive fouls should still be shown
+      expect(screen.getByText('2/3')).toBeInTheDocument()
+    })
+
+    it('should reset consecutive fouls after 3-foul penalty', () => {
+      render(() => <App />)
+
+      const ballMadeBtn = screen.getByText('Ball Made (+1)')
+      const foulBtn = screen.getByText('Foul (-1)')
+      const switchBtn = screen.getByText('Switch Player')
+
+      // Player 1 scores 20 points
+      for (let i = 0; i < 20; i++) {
+        fireEvent.click(ballMadeBtn)
+      }
+
+      // Apply 3 consecutive fouls
+      fireEvent.click(foulBtn)
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn)
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn) // 3rd foul, triggers penalty
+
+      // Consecutive fouls counter should be gone after penalty
+      expect(screen.queryByText(/Consecutive Fouls:/)).not.toBeInTheDocument()
+    })
+
+    it('should not apply 3-foul penalty if score would go negative', () => {
+      render(() => <App />)
+
+      const ballMadeBtn = screen.getByText('Ball Made (+1)')
+      const foulBtn = screen.getByText('Foul (-1)')
+      const switchBtn = screen.getByText('Switch Player')
+
+      // Player 1 scores only 5 points (less than 15)
+      for (let i = 0; i < 5; i++) {
+        fireEvent.click(ballMadeBtn)
+      }
+
+      // Apply 3 consecutive fouls
+      fireEvent.click(foulBtn)
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn)
+      fireEvent.click(switchBtn)
+      fireEvent.click(foulBtn) // 3rd foul
+
+      // Score should be 0, not negative
+      const scores = screen.getAllByText('0')
+      expect(scores.length).toBeGreaterThanOrEqual(1)
     })
   })
 

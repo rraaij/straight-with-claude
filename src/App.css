@@ -172,6 +172,25 @@ header h1 {
   color: #4CAF50;
 }
 
+.info-card.foul-warning {
+  border-color: #f44336;
+  background: #2a1a1a;
+}
+
+.info-card .value.warning {
+  color: #f44336;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
 .controls {
   margin-bottom: 30px;
 }
