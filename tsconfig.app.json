@@ -25,5 +25,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "node_modules/.pnpm/@types+node@24.10.1/node_modules/@types/node/globals.d.ts"]
 }
