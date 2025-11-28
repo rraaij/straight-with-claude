@@ -2,6 +2,10 @@
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 header {
@@ -181,6 +185,59 @@ header h1 {
   margin-bottom: 15px;
 }
 
+.score-entry {
+  background: #1e1e1e;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.balls-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.2em;
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  background: #2a2a2a;
+  color: #fff;
+  margin-top: 8px;
+}
+
+.balls-input:focus {
+  outline: none;
+  border-color: #45a049;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.checkbox-group {
+  margin-bottom: 20px;
+}
+
+.foul-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.1em;
+  cursor: pointer;
+}
+
+.foul-checkbox input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
 .button-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -197,32 +254,22 @@ header h1 {
   transition: all 0.2s;
 }
 
-.score-btn {
+.end-turn-btn {
   background: #4CAF50;
   color: white;
 }
 
-.score-btn:hover {
+.end-turn-btn:hover {
   background: #45a049;
   transform: translateY(-2px);
 }
 
-.foul-btn {
-  background: #f44336;
-  color: white;
-}
-
-.foul-btn:hover {
-  background: #da190b;
-  transform: translateY(-2px);
-}
-
-.switch-btn {
+.rerack-btn {
   background: #2196F3;
   color: white;
 }
 
-.switch-btn:hover {
+.rerack-btn:hover {
   background: #0b7dda;
   transform: translateY(-2px);
 }

@@ -28,6 +28,8 @@ function App() {
   const [tempName2, setTempName2] = createSignal(player2().name)
   const [gameWon, setGameWon] = createSignal(false)
   const [winner, setWinner] = createSignal('')
+  const [ballsRemaining, setBallsRemaining] = createSignal('')
+  const [hasFoul, setHasFoul] = createSignal(false)
 
   const addEvent = (action: string, points: number) => {
     const player = currentPlayer() === 1 ? player1().name : player2().name
@@ -43,27 +45,48 @@ function App() {
     ])
   }
 
-  const addScore = (points: number) => {
+  const endTurn = () => {
+    const remaining = parseInt(ballsRemaining())
+
+    if (isNaN(remaining) || remaining < 0 || remaining > 15) {
+      alert('Please enter a valid number of balls remaining (0-15)')
+      return
+    }
+
     const player = currentPlayer() === 1 ? player1 : player2
     const setPlayer = currentPlayer() === 1 ? setPlayer1 : setPlayer2
 
-    setPlayer({ ...player(), score: player().score + points })
-    setBallsInRack(Math.max(0, ballsInRack() - points))
-    addEvent(`Made ${points} ball${points > 1 ? 's' : ''}`, points)
+    // Calculate balls pocketed
+    const ballsPocketed = ballsInRack() - remaining
+    let scoreChange = ballsPocketed
 
-    if (ballsInRack() <= 1) {
-      setBallsInRack(15)
-      addEvent('Rack broken and re-racked', 0)
+    // Apply foul if checked
+    if (hasFoul()) {
+      scoreChange -= 1
+      addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}, Foul (-1)`, ballsPocketed - 1)
+    } else if (ballsPocketed > 0) {
+      addEvent(`Made ${ballsPocketed} ball${ballsPocketed !== 1 ? 's' : ''}`, ballsPocketed)
+    } else {
+      addEvent('Missed', 0)
     }
+
+    // Update score
+    setPlayer({ ...player(), score: Math.max(0, player().score + scoreChange) })
+
+    // Update balls in rack
+    setBallsInRack(remaining)
+
+    // Reset input
+    setBallsRemaining('')
+    setHasFoul(false)
+
+    // Switch player
+    switchPlayer()
   }
 
-  const applyFoul = () => {
-    const player = currentPlayer() === 1 ? player1 : player2
-    const setPlayer = currentPlayer() === 1 ? setPlayer1 : setPlayer2
-
-    setPlayer({ ...player(), score: Math.max(0, player().score - 1) })
-    addEvent('Foul (-1 point)', -1)
-    switchPlayer()
+  const reRack = () => {
+    setBallsInRack(15)
+    addEvent('Re-rack', 0)
   }
 
   const switchPlayer = () => {
@@ -81,6 +104,8 @@ function App() {
       setGameHistory([])
       setGameWon(false)
       setWinner('')
+      setBallsRemaining('')
+      setHasFoul(false)
     }
   }
 
@@ -203,26 +228,43 @@ function App() {
       </div>
 
       <div class="controls">
-        <h3>Score Actions</h3>
-        <div class="button-grid">
-          <button class="score-btn" onClick={() => addScore(1)}>
-            Ball Made (+1)
-          </button>
-          <button class="score-btn" onClick={() => addScore(2)}>
-            2 Balls (+2)
-          </button>
-          <button class="score-btn" onClick={() => addScore(3)}>
-            3 Balls (+3)
-          </button>
-          <button class="foul-btn" onClick={applyFoul}>
-            Foul (-1)
-          </button>
-          <button class="switch-btn" onClick={switchPlayer}>
-            Switch Player
-          </button>
-          <button class="reset-btn" onClick={resetGame}>
-            Reset Game
-          </button>
+        <h3>End Turn</h3>
+        <div class="score-entry">
+          <div class="input-group">
+            <label>
+              Balls Remaining on Table:
+              <input
+                type="number"
+                min="0"
+                max="15"
+                value={ballsRemaining()}
+                onInput={(e) => setBallsRemaining(e.currentTarget.value)}
+                placeholder="Enter 0-15"
+                class="balls-input"
+              />
+            </label>
+          </div>
+          <div class="checkbox-group">
+            <label class="foul-checkbox">
+              <input
+                type="checkbox"
+                checked={hasFoul()}
+                onChange={(e) => setHasFoul(e.currentTarget.checked)}
+              />
+              Foul occurred
+            </label>
+          </div>
+          <div class="button-grid">
+            <button class="end-turn-btn" onClick={endTurn}>
+              End Turn
+            </button>
+            <button class="rerack-btn" onClick={reRack}>
+              Re-rack
+            </button>
+            <button class="reset-btn" onClick={resetGame}>
+              Reset Game
+            </button>
+          </div>
         </div>
       </div>
 
